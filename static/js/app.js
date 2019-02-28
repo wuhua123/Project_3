@@ -1,71 +1,90 @@
 // Plot the default route once the page loads
-var defaultURL = "/country_chart";
-d3.json(defaultURL, function(data){
-  var data = [data];
-  var layout = { margin: { t: 30, b: 100 } };
-  Plotly.newPlot("map-id", data, layout);
-});
-
-
+function init(){
+  var defaultURL = "\eq_report";
+  d3.json(`/${defaultURL}`, function(data){
+    buildTable(data.year, data.country, data.mag, data.depth, data.latitude, data.longitude);
+  });
+};
 function getData(route) {
     switch (route) {
+    case "eq_report":
+      //clear and rebuild id
+      rebuild_mapid();
+      //drawing table
+      d3.json(`/${route}`, function(data){
+        buildTable(data.year, data.country, data.mag, data.depth, data.latitude, data.longitude);
+      });
+      break;
     case "country_chart":
+      //clear map
       $('#map-id').empty();
-      d3.json(`/${route}`,function(data){
+      //drawing chart
+      d3.json(`/${route}`, function(data) {
         var data = [data];
         var layout = { margin: { t: 30, b: 100 } };
         Plotly.newPlot("map-id", data, layout);
       });
       break;
     case "distribution_map":
-      var container = L.DomUtil.get('map-id');
-      if(container != null){
-        $( "#map-id" ).remove();
-        var $newdiv1 = $( "<div id='map-id'></div>" ),
-             newdiv2 = document.createElement( "div" ),
-             existingdiv1 = document.getElementById( "marker-map-id" );
-        $( "body" ).append( $newdiv1, [ newdiv2, existingdiv1 ] );
-      };
-      exist = $('#map-id').length;
-      console.log(exist);
+      //clear and rebuild id
+      rebuild_mapid();
+      //drawing map
       d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson", function(earthquakeData) {
         createFeatures(earthquakeData.features);
       });
       break;
     default:
-      /*var eyeColor = ["Brown", "Brown", "Brown", "Brown", "Brown","Brown", "Brown", "Brown", "Green", "Green","Green",
-        "Green", "Green", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue"];
-      var eyeFlicker = [26.8, 27.9, 23.7, 25, 26.3, 24.8, 25.7, 24.5, 26.4, 24.2, 28, 26.9, 
-        29.1, 25.7, 27.2, 29.9, 28.5, 29.4, 28.3];
-
-      // Create the Trace
-      var trace1 = {
-          x: eyeColor,
-          y: eyeFlicker,
-          type: "bar"
-      };
-
-       // Create the data array for the plot
-      var data = [trace1];
-
-       // Define the plot layout
-      var layout = {
-          title: "Eye Color vs Flicker",
-          xaxis: { title: "Eye Color" },
-          yaxis: { title: "Flicker Frequency" }
-      };
-
-      // Plot the chart to a div tag with id "bar-plot"
-      //$('#plot-id').html('');
-      Plotly.newPlot("plot-id", data, layout);*/
+      console.log("Display Empty Page");
       break;
-    }
-};
+    };
+}
 
-// Function to scale the Magnitude 
+function rebuild_mapid(){
+  //clear and rebuild map-id
+  var container = L.DomUtil.get('map-id');
+  if(container != null){
+    $( "#map-id" ).remove();
+    var $newdiv1 = $( "<div id='map-id'></div>" ),
+    newdiv2 = document.createElement( "div" ),
+    existingdiv1 = document.getElementById( "marker-map-id" );
+    $( "body" ).append( $newdiv1, [ newdiv2, existingdiv1 ] );
+  };
+  //check successful of rebuiding map-id
+  exist = $('#map-id').length;
+  console.log(exist);
+}
+
+function buildTable(year, country, mag, depth, latitude, longitude) {
+  var table_tag = '<table border="0" id="summary-table">';
+  $("#map-id").html(table_tag);
+
+  exist = $('#summary-table').length;
+  console.log(exist);
+
+  var table = d3.select("#summary-table")
+  var thead = table.append("thead");
+  var trow1 = thead.append("tr");
+  trow1.append("th").text("Year");
+  trow1.append("th").text("Country");
+  trow1.append("th").text("Mag");
+  trow1.append("th").text("Depth");
+  trow1.append("th").text("Latitude");
+  trow1.append("th").text("Longitude");
+
+  var tbody = table.append("tbody");
+  var trow;
+  for (var i = 0; mag[i]>=7; i++) {
+    trow = tbody.append("tr");
+    trow.append("td").text(year[i]);
+    trow.append("td").text(country[i]);
+    trow.append("td").text(mag[i]);
+    trow.append("td").text(depth[i]);
+    trow.append("td").text(latitude[i]);
+    trow.append("td").text(longitude[i]);
+  }}
 function markerSize(magnitude) {
   return magnitude * 30000;
-};
+}
 
 // Function to assign color depends on the Magnitude
 function getColor(m) {
@@ -78,7 +97,7 @@ function getColor(m) {
           m > 2? colors[2]:
           m > 1? colors[1]:
                  colors[0];
-};
+}
 
 function createFeatures(earthquakeData) {
 
@@ -171,3 +190,5 @@ function createMap(earthquakes) {
   };
   legend.addTo(myMap);
 }
+
+init();

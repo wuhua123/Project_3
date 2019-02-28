@@ -52,7 +52,6 @@ def country_chart_data():
     """Return country name and counts of earthquake in last 100 years"""
 
     # Query for earthquake counts by each country
-    query_statement = db.session.query
     results = db.session.query(Eq_100.country, func.count(Eq_100.country)).group_by(Eq_100.country)
 
     # Create lists from the query results
@@ -66,6 +65,28 @@ def country_chart_data():
         "type": "bar"
     }
     return jsonify(trace)
+
+@app.route("/eq_report")
+def eq_report():
+    """Return earthquake data in the database"""
+    results = db.session.query(Eq_100.year, Eq_100.country, \
+        Eq_100.mag, Eq_100.depth, Eq_100.latitude, Eq_100.longitude)\
+            .order_by(Eq_100.mag.desc())
+
+    # Create lists from the query results
+    # item_num = [ i for i in range(len(results[0]))] - cannot query id
+    eq_year = [result[0] for result in results]
+    country_name = [result[1] for result in results]
+    earthquake_mag = [result[2] for result in results]
+    earthquake_depth = [result[3] for result in results]
+    latitude = [result[4] for result in results]
+    longitude = [result[5] for result in results]
+
+    # Generate jason format data
+    dataset = {"year": eq_year, "country":country_name, "mag": earthquake_mag, \
+        "depth":earthquake_depth, "latitude":latitude, "longitude":longitude}
+    #eq_data = {"dataset": dataset} - this caused error
+    return jsonify(dataset)
 
 @app.route("/distribution_map")
 def distribution_map():
